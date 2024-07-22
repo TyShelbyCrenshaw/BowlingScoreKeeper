@@ -1,0 +1,175 @@
+﻿@inherits ComponentBase
+
+<div class="frame col border">
+	<div class="w-100 h-100">
+		<div class="row">
+			<div class="col text-center align-content-center">
+				@FirstRollDisplayValue
+			</div>
+			<div class="col border text-center align-content-center">
+				@SecondRollDisplayValue
+			</div>
+			@if(FrameIndex == 10)
+			{
+				<div class="thirdRoll col-sm-4 border text-center align-content-center">
+					@ThirdRollDisplayValue
+				</div>
+			}
+		</div>
+		<div class="row text-center">
+			<div class="col text-center align-content-center">
+				@(GameScoreUpToCurrentFrame?.ToString() ?? "\u00A0")
+			</div>
+		</div>
+	</div>
+</div>
+
+@code {
+	//still can implement fouls and splits if I wanted
+
+	[Parameter]
+	public int FrameIndex { get; set; }
+	[Parameter]
+	public int? FirstRoll { get; set; }
+	public string FirstRollDisplayValue
+	{
+		get
+		{
+			if(FrameIndex == 10)
+			{
+				if(IsStrike)
+				{
+					return "X";
+				}
+				if (FirstRoll == null)
+				{
+					return "\u00A0";
+				}
+				else if (FirstRoll == 0)
+				{
+					return "-";
+				}
+				else
+				{
+					return FirstRoll.ToString();
+				}
+			}
+			else
+			{
+				if (IsStrike || FirstRoll == null)
+				{
+					return "\u00A0";
+				}
+				else if(FirstRoll == 0)
+				{
+					return "-";
+				}
+				else
+				{
+					return FirstRoll.ToString();
+				}	
+			}
+
+		}
+	}
+
+	[Parameter]
+	public int? SecondRoll { get; set; }
+	public string SecondRollDisplayValue
+	{
+		get
+		{
+			if(FrameIndex == 10)
+			{
+				if(IsStrike && SecondRoll == 10)
+				{
+					return "X";
+				}
+				if (IsSpare)
+				{
+					return "/";
+				}
+				else if (SecondRoll == null)
+				{
+					return "\u00A0";
+				}
+				else if (SecondRoll == 0)
+				{
+					return "-";
+				}
+				else
+				{
+					return SecondRoll.ToString();
+				}
+			}
+			else
+			{
+				if(IsStrike)
+				{
+					return "X";
+				}
+				else if (IsSpare)
+				{
+					return "/";
+				}
+				else if (SecondRoll == null)
+				{
+					return "\u00A0";
+				}
+				else if (SecondRoll == 0)
+				{
+					return "-";
+				}
+				else
+				{
+					return SecondRoll.ToString();
+				}
+			}
+
+		}
+	}
+
+	[Parameter]
+	public int? ThirdRoll { get; set; }
+	public string ThirdRollDisplayValue
+	{
+		get
+		{
+			if(FrameIndex == 10)
+			{
+				if (ThirdRoll == 10)
+				{
+					return "X";
+				}
+				else if (ThirdRoll == null)
+				{
+					return "\u00A0";
+				}
+				else if (ThirdRoll == 0)
+				{
+					return "-";
+				}
+				else
+				{
+					return ThirdRoll.ToString();
+				}		
+			}
+			else
+			{
+				//this should not get use if we are not in the 10th frame
+				return "\u00A0";
+			}
+		}
+	}
+
+	[Parameter]
+	public int? GameScoreUpToCurrentFrame { get; set; }
+	[Parameter]
+	public bool LastFrame { get; set; }
+
+
+
+	public bool IsStrike => FirstRoll == 10;
+
+	public bool IsSpare => IsStrike == false && (FirstRoll + SecondRoll == 10);
+}
