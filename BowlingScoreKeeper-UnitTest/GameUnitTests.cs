@@ -60,6 +60,84 @@ namespace BowlingScoreKeeper_UnitTest
 		}
 
 		[Test]
+		public void TestStrikeFollowedByOpenFrame()
+		{
+			game.AddRoll(10);  // Frame 1
+			game.AddRoll(3);   // Frame 2
+			Assert.IsNull(game.Frames[0].Score);  // Can't calculate yet
+			game.AddRoll(4);   // Frame 2
+			Assert.AreEqual(17, game.Frames[0].Score);  // Now we can calculate
+			Assert.AreEqual(24, game.Frames[1].Score);
+		}
+
+		[Test]
+		public void TestTwoConsecutiveStrikes()
+		{
+			game.AddRoll(10);  // Frame 1
+			game.AddRoll(10);  // Frame 2
+			Assert.IsNull(game.Frames[0].Score);  // Can't calculate yet
+			game.AddRoll(5);   // Frame 3
+			Assert.AreEqual(25, game.Frames[0].Score);  // Now we can calculate Frame 1
+			Assert.IsNull(game.Frames[1].Score);  // Frame 2 still can't be calculated
+		}
+
+		[Test]
+		public void TestThreeConsecutiveStrikes()
+		{
+			game.AddRoll(10);  // Frame 1
+			game.AddRoll(10);  // Frame 2
+			game.AddRoll(10);  // Frame 3
+			Assert.AreEqual(30, game.Frames[0].Score);  // Now we can calculate Frame 1
+			Assert.IsNull(game.Frames[1].Score);  // Frame 2 still can't be calculated
+			Assert.IsNull(game.Frames[2].Score);  // Frame 3 can't be calculated yet
+		}
+
+		[Test]
+		public void TestSpareFollowedByStrike()
+		{
+			game.AddRoll(5);   // Frame 1
+			game.AddRoll(5);   // Frame 1 (Spare)
+			Assert.IsNull(game.Frames[0].Score);  // Can't calculate yet
+			game.AddRoll(10);  // Frame 2 (Strike)
+			Assert.AreEqual(20, game.Frames[0].Score);  // Now we can calculate Frame 1
+			Assert.IsNull(game.Frames[1].Score);  // Frame 2 can't be calculated yet
+		}
+
+		[Test]
+		public void TestSpareFollowedByOpenFrame()
+		{
+			game.AddRoll(5);   // Frame 1
+			game.AddRoll(5);   // Frame 1 (Spare)
+			Assert.IsNull(game.Frames[0].Score);  // Can't calculate yet
+			game.AddRoll(3);   // Frame 2
+			Assert.AreEqual(13, game.Frames[0].Score);  // Now we can calculate Frame 1
+			game.AddRoll(4);   // Frame 2
+			Assert.AreEqual(20, game.Frames[1].Score);  // Now we can calculate Frame 2
+		}
+
+		[Test]
+		public void TestStrikeSpareSequence()
+		{
+			game.AddRoll(10);  // Frame 1 (Strike)
+			game.AddRoll(5);   // Frame 2
+			game.AddRoll(5);   // Frame 2 (Spare)
+			Assert.AreEqual(20, game.Frames[0].Score);  // Now we can calculate Frame 1
+			Assert.IsNull(game.Frames[1].Score);  // Frame 2 can't be calculated yet
+			game.AddRoll(7);   // Frame 3
+			Assert.AreEqual(37, game.Frames[1].Score);  // Now we can calculate Frame 2
+		}
+
+		[Test]
+		public void TestOpenFrameFollowedByStrike()
+		{
+			game.AddRoll(3);   // Frame 1
+			game.AddRoll(4);   // Frame 1
+			Assert.AreEqual(7, game.Frames[0].Score);  // Can calculate immediately
+			game.AddRoll(10);  // Frame 2 (Strike)
+			Assert.IsNull(game.Frames[1].Score);  // Frame 2 can't be calculated yet
+		}
+
+		[Test]
 		public void TestStrikeFollowedByRegularFrame()
 		{
 			game.AddRoll(10); // Frame 1

@@ -25,7 +25,7 @@ namespace BowlingScoreKeeper.Components.Pages
 
         public void AddRoll(int pinsKnocked)
         {
-            if(CurrentFrameIndex >= 10) 
+            if(CurrentFrameIndex >= 10 || IsGameComplete()) 
             {
                 return;
             }
@@ -87,62 +87,120 @@ namespace BowlingScoreKeeper.Components.Pages
                 GameFrame currentFrame = Frames[i];
 				//get the values for my Frames[i] and set the GameScoreUpToCurrentFrame
 				int currentFramePoints = (currentFrame.FirstRoll ?? 0) + (currentFrame.SecondRoll ?? 0);
+                int additionalPoints = 0;
+                bool canCalculateFrame = true;
 
-				//if you have spares you need to look one roll forward and add that
-				if(currentFrame.IsSpare)
+                //can i get values for this frame
+                if(currentFrame.IsStrike)
                 {
-                    //you can get an out of bounds if this is the last frame
-                    if(i < 9)
-                    {
+					//Frame 8
+					if (i < 8)
+					{
+						//we cannot go out of bounds
 						GameFrame nextFrame = Frames[i + 1];
-						currentFramePoints += nextFrame.FirstRoll ?? 0;
-					}
-                    else
-                    {
-                        //yes you can get here if we get a spare in the 10 frame
-                        //we are in the 10th frame and we just need to add the 3rd shot
-                        currentFramePoints += currentFrame.ThirdRoll ?? 0;
-                    }
-                }
-				//if you have a stike you need to look two rolls forward and add that
-                else if(currentFrame.IsStrike)
-                {
-                    //Frame 8
-                    if (i < 8)
-                    {
-                        //we cannot go out of bounds
-                        GameFrame nextFrame = Frames[i + 1];
-						currentFramePoints += nextFrame.FirstRoll ?? 0;
-						if(nextFrame.IsStrike)
+
+                        if(nextFrame.FirstRoll == null)
                         {
-                            GameFrame twoNextFrame = Frames[i + 2];
-                            currentFramePoints += twoNextFrame.FirstRoll ?? 0;
+                            canCalculateFrame = false;
                         }
-                        else
-                        {
+						currentFramePoints += nextFrame.FirstRoll ?? 0;
+						if (nextFrame.IsStrike)
+						{
+							GameFrame twoNextFrame = Frames[i + 2];
+							if (twoNextFrame.FirstRoll == null)
+							{
+								canCalculateFrame = false;
+							}
+							currentFramePoints += twoNextFrame.FirstRoll ?? 0;
+						}
+						else
+						{
+							if (nextFrame.SecondRoll == null)
+							{
+								canCalculateFrame = false;
+							}
 							currentFramePoints += nextFrame.SecondRoll ?? 0;
-                        }
+						}
 
 					}
-                    //Frame 9
-                    else if(i < 9)
-                    {
+					//Frame 9
+					else if (i < 9)
+					{
 						//be carful we can go out of bounds now
 						GameFrame nextFrame = Frames[i + 1];
-                        currentFramePoints += nextFrame.FirstRoll ?? 0;
-                        currentFramePoints += nextFrame.SecondRoll ?? 0;
+						if (nextFrame.FirstRoll == null || nextFrame.SecondRoll == null)
+						{
+							canCalculateFrame = false;
+						}
+						currentFramePoints += nextFrame.FirstRoll ?? 0;
+						currentFramePoints += nextFrame.SecondRoll ?? 0;
 					}
-                    //Frame 10
-                    else
-                    {
-                        //we are in the last Frame
-                        currentFramePoints = (currentFrame.FirstRoll ?? 0) + (currentFrame.SecondRoll ?? 0) + (currentFrame.ThirdRoll ?? 0);
-                    }
+					//Frame 10
+					else
+					{
+						//we are in the last Frame
+						//this is not correct
+						if (currentFrame.FirstRoll == null || currentFrame.SecondRoll == null || currentFrame.ThirdRoll == null)
+						{
+							canCalculateFrame = false;
+						}
+						currentFramePoints = (currentFrame.FirstRoll ?? 0) + (currentFrame.SecondRoll ?? 0) + (currentFrame.ThirdRoll ?? 0);
+					}
 				}
-                currentFrame.Score = runningTotal + currentFramePoints;
-                runningTotal = currentFrame.Score ?? 0;
+                else if (currentFrame.IsSpare)
+                {
+					//you can get an out of bounds if this is the last frame
+					if (i < 9)
+					{
+						GameFrame nextFrame = Frames[i + 1];
+						if (nextFrame.FirstRoll == null)
+						{
+							canCalculateFrame = false;
+						}
+						currentFramePoints += nextFrame.FirstRoll ?? 0;
+					}
+					else
+					{
+						//yes you can get here if we get a spare in the 10 frame
+						//we are in the 10th frame and we just need to add the 3rd shot
+						if (currentFrame.ThirdRoll == null)
+						{
+							canCalculateFrame = false;
+						}
+						currentFramePoints += currentFrame.ThirdRoll ?? 0;
+					}
+				}
+				else
+				{
+					if (currentFrame.FirstRoll == null || currentFrame.SecondRoll == null)
+					{
+						canCalculateFrame = false;
+					}
+				}
+
+				if (canCalculateFrame) {
+					currentFrame.Score = runningTotal + currentFramePoints;
+					runningTotal = currentFrame.Score ?? 0;
+				}
 			}
 		}
+		private bool IsGameComplete()
+		{
+			if (CurrentFrameIndex < 9)
+			{
+				return false;
+			}
+
+			GameFrame tenthFrame = Frames[9];
+
+			if (tenthFrame.IsStrike || tenthFrame.IsSpare)
+			{
+				return tenthFrame.ThirdRoll != null;
+			}
+
+			return tenthFrame.SecondRoll != null;
+		}
+
 	}
 
 
