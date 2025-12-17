@@ -5,12 +5,12 @@ namespace BowlingScoreKeeper_UnitTest
 	[TestFixture]
 	public class Tests
 	{
-		public Game game;
+		public GameRefactored game;
 
 		[SetUp]
 		public void Setup()
 		{
-			game = new Game();
+			game = new GameRefactored();
 		}
 
 		[Test]

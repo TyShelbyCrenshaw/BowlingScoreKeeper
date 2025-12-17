@@ -30,21 +30,18 @@ namespace BowlingScoreKeeper.Components.Pages
                 return;
             }
 
-			//what is our current frame
-			GameFrame currentFrame = Frames[CurrentFrameIndex];
-
 			//add the pinsKnock to the current frame
-			if (currentFrame.FirstRoll == null)
+			if (CurrentFrame.FirstRoll == null)
             {
-                currentFrame.FirstRoll = pinsKnocked;
+                CurrentFrame.FirstRoll = pinsKnocked;
             }
-            else if(currentFrame.SecondRoll == null)
+            else if(CurrentFrame.SecondRoll == null)
             {
-                currentFrame.SecondRoll = pinsKnocked;
+                CurrentFrame.SecondRoll = pinsKnocked;
             }
-            else if(CurrentFrameIndex == 9 && currentFrame.ThirdRoll == null)
+            else if(CurrentFrameIndex == 9 && CurrentFrame.ThirdRoll == null)
             {
-                currentFrame.ThirdRoll = pinsKnocked;
+                CurrentFrame.ThirdRoll = pinsKnocked;
             }
             else
             {
@@ -84,14 +81,14 @@ namespace BowlingScoreKeeper.Components.Pages
 			//calculate each frame GameScoreUpToCurrentFrame
 			for (int i = 0; i <= CurrentFrameIndex; i++)
             {
-                GameFrame currentFrame = Frames[i];
+                GameFrame currentCalculatingFrame = Frames[i];
 				//get the values for my Frames[i] and set the GameScoreUpToCurrentFrame
-				int currentFramePoints = (currentFrame.FirstRoll ?? 0) + (currentFrame.SecondRoll ?? 0);
+				int currentFramePoints = (currentCalculatingFrame.FirstRoll ?? 0) + (currentCalculatingFrame.SecondRoll ?? 0);
                 int additionalPoints = 0;
                 bool canCalculateFrame = true;
 
                 //can i get values for this frame
-                if(currentFrame.IsStrike)
+                if(currentCalculatingFrame.IsStrike)
                 {
 					//Frame 8
 					if (i < 8)
@@ -140,14 +137,14 @@ namespace BowlingScoreKeeper.Components.Pages
 					{
 						//we are in the last Frame
 						//this is not correct
-						if (currentFrame.FirstRoll == null || currentFrame.SecondRoll == null || currentFrame.ThirdRoll == null)
+						if (currentCalculatingFrame.FirstRoll == null || currentCalculatingFrame.SecondRoll == null || currentCalculatingFrame.ThirdRoll == null)
 						{
 							canCalculateFrame = false;
 						}
-						currentFramePoints = (currentFrame.FirstRoll ?? 0) + (currentFrame.SecondRoll ?? 0) + (currentFrame.ThirdRoll ?? 0);
+						currentFramePoints = (currentCalculatingFrame.FirstRoll ?? 0) + (currentCalculatingFrame.SecondRoll ?? 0) + (currentCalculatingFrame.ThirdRoll ?? 0);
 					}
 				}
-                else if (currentFrame.IsSpare)
+                else if (currentCalculatingFrame.IsSpare)
                 {
 					//you can get an out of bounds if this is the last frame
 					if (i < 9)
@@ -163,24 +160,24 @@ namespace BowlingScoreKeeper.Components.Pages
 					{
 						//yes you can get here if we get a spare in the 10 frame
 						//we are in the 10th frame and we just need to add the 3rd shot
-						if (currentFrame.ThirdRoll == null)
+						if (currentCalculatingFrame.ThirdRoll == null)
 						{
 							canCalculateFrame = false;
 						}
-						currentFramePoints += currentFrame.ThirdRoll ?? 0;
+						currentFramePoints += currentCalculatingFrame.ThirdRoll ?? 0;
 					}
 				}
 				else
 				{
-					if (currentFrame.FirstRoll == null || currentFrame.SecondRoll == null)
+					if (currentCalculatingFrame.FirstRoll == null || currentCalculatingFrame.SecondRoll == null)
 					{
 						canCalculateFrame = false;
 					}
 				}
 
 				if (canCalculateFrame) {
-					currentFrame.Score = runningTotal + currentFramePoints;
-					runningTotal = currentFrame.Score ?? 0;
+					currentCalculatingFrame.Score = runningTotal + currentFramePoints;
+					runningTotal = currentCalculatingFrame.Score ?? 0;
 				}
 			}
 		}
@@ -201,18 +198,5 @@ namespace BowlingScoreKeeper.Components.Pages
 			return tenthFrame.SecondRoll != null;
 		}
 
-	}
-
-
-	public class GameFrame
-	{
-        public int FrameIndex { get; set; }
-		public int? FirstRoll { get; set; }
-		public int? SecondRoll { get; set; }
-		public int? ThirdRoll { get; set; }
-		public int? Score { get; set; }
-
-		public bool IsStrike => FirstRoll == 10;
-		public bool IsSpare => !IsStrike && (FirstRoll + SecondRoll == 10);
 	}
 }

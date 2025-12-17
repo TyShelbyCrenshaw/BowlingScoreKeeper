@@ -7,7 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddScoped<Game>();
+//builder.Services.AddScoped<Game>();
+builder.Services.AddScoped<IGame, GameRefactored>();
 
 var app = builder.Build();
 
