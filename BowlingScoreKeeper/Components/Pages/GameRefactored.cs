@@ -28,10 +28,15 @@ namespace BowlingScoreKeeper.Components.Pages
 
 		public void AddRoll(int pinsKnocked)
 		{
-			//Is the game over?
+			//is the game over?
 			if (_currentFrameNode == null || IsGameComplete())
 			{
 				return;
+			}
+
+			if (!IsValidRoll(pinsKnocked))
+			{
+				return; //silently reject invalid rolls
 			}
 
 			GameFrame frame = _currentFrameNode.Value;
@@ -76,7 +81,7 @@ namespace BowlingScoreKeeper.Components.Pages
 		{
 			int runningTotal = 0;
             LinkedListNode<GameFrame>? node = _frames.First;
-			while(node != null && node.Value.FrameIndex <= _currentFrameNode.Value.FrameIndex)
+			while(node != null && node.Value.FrameIndex <= CurrentFrame.FrameIndex)
 			{
 				int framePoints = 0;
 				bool frameFinalized = false;
@@ -154,6 +159,85 @@ namespace BowlingScoreKeeper.Components.Pages
 			}
 
 			return tenthFrame.SecondRoll != null;
+		}
+
+		private bool IsValidRoll(int pinsKnocked)
+		{
+			if(pinsKnocked < 0 || pinsKnocked > 10)
+			{
+				return false;
+			}
+			if(CurrentFrameIndex < 9)
+			{
+				if(CurrentFrame.FirstRoll == null)
+				{
+					return true;
+				}
+				else
+				{
+					if (10 < (CurrentFrame.FirstRoll ?? 0) + pinsKnocked)
+					{
+						return false;
+					}
+				}
+
+			}
+			if(CurrentFrameIndex == 9)
+			{
+				//if we are the first roll we are valid
+				if(CurrentFrame.FirstRoll == null)
+				{
+					return true;
+				}
+
+				//if we are the second roll we have see did we get a strike if we did we can score up to 10
+				//else we can only score up to 10 for the first and second
+				if(CurrentFrame.SecondRoll == null)
+				{
+					if(CurrentFrame.IsStrike)
+					{
+						return true;
+					}
+					else
+					{
+						if((CurrentFrame.FirstRoll ?? 0) + pinsKnocked > 10)
+						{
+							return false;
+						}
+						return true;
+					}
+				}
+
+				//if we have a first and second score we must have gotten either a strike or a spare.
+				//if it was a was a spare we can get a we can have up to 10 points.
+				//if it was a strike we need to see if we got 10 points on the second frame if we did we can get 10 point
+				//else we can only get 10 - second frame points
+				//if we are on the third roll and we have not gotten 10 points yet we are invalid
+				if(CurrentFrame.ThirdRoll == null)
+				{
+					if(CurrentFrame.IsSpare)
+					{
+						return true;
+					}
+					else if(CurrentFrame.IsStrike)
+					{
+						if((CurrentFrame.SecondRoll ?? 0) == 10)
+						{
+							return true;
+						}
+						else
+						{
+							if((CurrentFrame.SecondRoll ?? 0) + pinsKnocked > 10)
+							{
+								return false;
+							}
+							return true;
+						}
+					}
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 }

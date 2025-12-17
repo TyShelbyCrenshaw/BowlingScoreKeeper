@@ -358,4 +358,185 @@ public class GameRefactoredUnitTests
 		Assert.That(game.Frames[9].ThirdRoll, Is.Null);
 		Assert.That(game.CurrentFrameIndex, Is.EqualTo(9));
 	}
+
+	//pinsKnocked < 0 || pinsKnocked > 10 -> false
+	[Test]
+	public void TestInvalidRoll_NegativePins()
+	{
+		bool result = (bool)game.GetType()
+			.GetMethod("IsValidRoll", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+			.Invoke(game, new object[] { -1 });
+		Assert.That(result, Is.False);
+	}
+
+	//framePinsDown > 10 for non-tenth frame -> false
+	[Test]
+	public void TestInvalidRoll_ExceedsTenPinsInFrame()
+	{
+		game.AddRoll(7);
+		bool result = (bool)game.GetType()
+			.GetMethod("IsValidRoll", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+			.Invoke(game, new object[] { 5 });
+		Assert.That(result, Is.False);
+	}
+
+	//CurrentFrameIndex == 9 && FirstRoll == null -> true
+	[Test]
+	public void TestValidRoll_TenthFrameFirstRoll()
+	{
+		// Get to the 10th frame
+		for (int i = 0; i < 18; i++)
+		{
+			game.AddRoll(1);
+		}
+		bool result = (bool)game.GetType()
+			.GetMethod("IsValidRoll", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+			.Invoke(game, new object[] { 10 });
+		Assert.That(result, Is.True);
+	}
+
+	//10th frame, second roll, after strike -> true
+	[Test]
+	public void TestValidRoll_TenthFrameSecondRollAfterStrike()
+	{
+		// Get to the 10th frame
+		for (int i = 0; i < 18; i++)
+		{
+			game.AddRoll(1);
+		}
+		game.AddRoll(10); // Strike in 10th frame
+		bool result = (bool)game.GetType()
+			.GetMethod("IsValidRoll", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+			.Invoke(game, new object[] { 10 });
+		Assert.That(result, Is.True);
+	}
+
+	//10th frame, second roll, no strike, exceeds 10 -> false
+	[Test]
+	public void TestInvalidRoll_TenthFrameSecondRollExceedsTen()
+	{
+		// Get to the 10th frame
+		for (int i = 0; i < 18; i++)
+		{
+			game.AddRoll(1);
+		}
+		game.AddRoll(7); // No strike in 10th frame
+		bool result = (bool)game.GetType()
+			.GetMethod("IsValidRoll", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+			.Invoke(game, new object[] { 5 });
+		Assert.That(result, Is.False);
+	}
+
+	//10th frame, second roll, no strike, valid -> true
+	[Test]
+	public void TestValidRoll_TenthFrameSecondRollValid()
+	{
+		// Get to the 10th frame
+		for (int i = 0; i < 18; i++)
+		{
+			game.AddRoll(1);
+		}
+		game.AddRoll(7); // No strike in 10th frame
+		bool result = (bool)game.GetType()
+			.GetMethod("IsValidRoll", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+			.Invoke(game, new object[] { 3 });
+		Assert.That(result, Is.True);
+	}
+
+	//10th frame, third roll, after spare -> true
+	[Test]
+	public void TestValidRoll_TenthFrameThirdRollAfterSpare()
+	{
+		// Get to the 10th frame
+		for (int i = 0; i < 18; i++)
+		{
+			game.AddRoll(1);
+		}
+		game.AddRoll(5);
+		game.AddRoll(5); // Spare in 10th frame
+		bool result = (bool)game.GetType()
+			.GetMethod("IsValidRoll", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+			.Invoke(game, new object[] { 10 });
+		Assert.That(result, Is.True);
+	}
+
+	//10th frame, third roll, after strike and second roll is 10 -> true
+	[Test]
+	public void TestValidRoll_TenthFrameThirdRollAfterTwoStrikes()
+	{
+		// Get to the 10th frame
+		for (int i = 0; i < 18; i++)
+		{
+			game.AddRoll(1);
+		}
+		game.AddRoll(10); // Strike
+		game.AddRoll(10); // Another strike
+		bool result = (bool)game.GetType()
+			.GetMethod("IsValidRoll", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+			.Invoke(game, new object[] { 10 });
+		Assert.That(result, Is.True);
+	}
+
+	//10th frame, third roll, after strike, second not 10, exceeds -> false
+	[Test]
+	public void TestInvalidRoll_TenthFrameThirdRollExceedsTen()
+	{
+		// Get to the 10th frame
+		for (int i = 0; i < 18; i++)
+		{
+			game.AddRoll(1);
+		}
+		game.AddRoll(10); // Strike
+		game.AddRoll(3);  // Not a strike
+		bool result = (bool)game.GetType()
+			.GetMethod("IsValidRoll", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+			.Invoke(game, new object[] { 8 });
+		Assert.That(result, Is.False);
+	}
+
+	//10th frame, third roll, after strike, second not 10, valid -> true
+	[Test]
+	public void TestValidRoll_TenthFrameThirdRollValid()
+	{
+		// Get to the 10th frame
+		for (int i = 0; i < 18; i++)
+		{
+			game.AddRoll(1);
+		}
+		game.AddRoll(10); // Strike
+		game.AddRoll(3);  // Not a strike
+		bool result = (bool)game.GetType()
+			.GetMethod("IsValidRoll", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+			.Invoke(game, new object[] { 5 });
+		Assert.That(result, Is.True);
+	}
+
+	//10th frame, third roll, no strike or spare -> false
+	[Test]
+	public void TestInvalidRoll_TenthFrameThirdRollNoStrikeOrSpare()
+	{
+		// Get to the 10th frame
+		for (int i = 0; i < 18; i++)
+		{
+			game.AddRoll(1);
+		}
+		game.AddRoll(3);
+		game.AddRoll(4); // No strike or spare
+						 // At this point, trying to validate a third roll should return false
+						 // But we need to call IsValidRoll before adding it
+		bool result = (bool)game.GetType()
+			.GetMethod("IsValidRoll", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+			.Invoke(game, new object[] { 5 });
+		Assert.That(result, Is.False);
+	}
+
+	//Final return true (for non-tenth frames that are valid)
+	[Test]
+	public void TestValidRoll_RegularFrameValid()
+	{
+		bool result = (bool)game.GetType()
+			.GetMethod("IsValidRoll", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+			.Invoke(game, new object[] { 5 });
+		Assert.That(result, Is.True);
+	}
 }
